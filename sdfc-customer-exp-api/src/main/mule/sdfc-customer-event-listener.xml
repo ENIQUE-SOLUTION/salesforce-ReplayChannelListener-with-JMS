@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="8d9b906f-19d6-499b-a5a0-b794fcb3bc8a" >
+		<salesforce:basic-connection username="amhatre@eniquesolutions.com" password="akshay12345" securityToken="ryT8AgtDl6SVd10HwDCXhVFOn" />
+	</salesforce:sfdc-config>
+	<jms:config name="JMS_Config" doc:name="JMS Config" doc:id="68346182-4ee6-4dca-9a46-e5f1b03e08cd" >
+		<jms:active-mq-connection username="admin" password="admin" >
+			<jms:factory-configuration brokerUrl="tcp://DESKTOP-NM02C99:61616" />
+		</jms:active-mq-connection>
+	</jms:config>
+	<flow name="sdfc-customer-event-listenerFlow" doc:id="565fbde7-dfd6-44ad-9c2c-11e7c4151160" >
+		<salesforce:replay-channel-listener doc:name="Replay channel listener" doc:id="10334c3a-fd92-4ed4-9422-4946382f4b13" config-ref="Salesforce_Config" streamingChannel="/data/AccountChangeEvent" replayOption="FROM_LAST_REPLAY_ID"/>
+		<ee:transform doc:name="Transform Message" doc:id="cfe6a3b2-efb7-460a-a7b1-b59cf63a26f2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<jms:publish doc:name="Publish" doc:id="cc206540-9fb7-4409-8c58-db996306511d" config-ref="JMS_Config" destination="sfdc"/>
+	</flow>
+</mule>

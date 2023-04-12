@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<jms:config name="JMS_Config" doc:name="JMS Config" doc:id="afb68221-22a8-4b4f-aaa8-a272727303cf" >
+		<jms:active-mq-connection username="admin" password="admin" >
+			<jms:factory-configuration brokerUrl="tcp://DESKTOP-NM02C99:61616" />
+		</jms:active-mq-connection>
+	</jms:config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="1abf23e0-d860-4f87-a0ce-062dbd47790a" basePath="bfbe3f5b-66f1-4a24-ae66-06b952a3f922">
+		<http:request-connection host="webhook.site" protocol="HTTPS" port="443"/>
+	</http:request-config>
+	<flow name="customer-sync-mq-listenerFlow" doc:id="3287bed9-d187-450d-be7a-5727e47c5a37" >
+		<jms:listener doc:name="On New Message" doc:id="75ed3c18-3ae8-4b35-acee-1f8dac7f31d0" config-ref="JMS_Config" destination="sfdc"/>
+		<ee:transform doc:name="Convert to json" doc:id="79660c9d-de55-48a3-ab75-bc9b1fc51bdd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<try doc:name="Try" doc:id="9dcc4357-2223-46ad-a0a8-5bf2a84d93e8" >
+			<http:request method="PUT" doc:name="Request to webhook.sites" doc:id="2987c120-77b5-4cb5-8a79-f365c5d0750e" config-ref="HTTP_Request_configuration" path="/customers"/>
+		</try>
+	</flow>
+</mule>
